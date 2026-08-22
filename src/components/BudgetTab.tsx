@@ -767,10 +767,10 @@ export const BudgetTab: React.FC = () => {
             {budgetType === 'expense' ? 'Выделенный бюджет' : 'Запланировано'}
           </span>
           <p className="text-xl font-bold text-gray-900">
-            {grandTotalBudget.toLocaleString('ru-RU')} ₽
+            {grandTotalBudget.toLocaleString('ru-RU')} ₸
           </p>
           <div className="text-[11px] text-gray-400 flex items-center gap-1 pt-0.5">
-            <span>Базовый: {totalPlanned.toLocaleString('ru-RU')} ₽</span>
+            <span>Базовый: {totalPlanned.toLocaleString('ru-RU')} ₸</span>
             {totalCarriedOver !== 0 && (
               <span className={totalCarriedOver > 0 ? 'text-emerald-600 font-medium' : 'text-rose-600 font-medium'}>
                 • Перенос: {totalCarriedOver > 0 ? `+${totalCarriedOver}` : totalCarriedOver}
@@ -785,7 +785,7 @@ export const BudgetTab: React.FC = () => {
             {budgetType === 'expense' ? 'Фактический расход' : 'Фактический доход'}
           </span>
           <p className={`text-xl font-bold ${budgetType === 'expense' ? 'text-rose-600' : 'text-emerald-600'}`}>
-            {grandTotalFact.toLocaleString('ru-RU')} ₽
+            {grandTotalFact.toLocaleString('ru-RU')} ₸
           </p>
           <div className="text-[11px] text-gray-500 pt-0.5 flex items-center justify-between">
             <span>Исполнение плана:</span>
@@ -801,7 +801,7 @@ export const BudgetTab: React.FC = () => {
           <p className={`text-xl font-bold ${
             grandTotalSaldo >= 0 ? 'text-emerald-600' : 'text-rose-600'
           }`}>
-            {grandTotalSaldo > 0 ? `+${grandTotalSaldo.toLocaleString('ru-RU')}` : `${grandTotalSaldo.toLocaleString('ru-RU')}`} ₽
+            {grandTotalSaldo > 0 ? `+${grandTotalSaldo.toLocaleString('ru-RU')}` : `${grandTotalSaldo.toLocaleString('ru-RU')}`} ₸
           </p>
           <div className="text-[11px] pt-0.5">
             {budgetType === 'expense' ? (
@@ -911,7 +911,7 @@ export const BudgetTab: React.FC = () => {
                 formatter={(val: any, name: string) => {
                   if (val === undefined || val === null) return ['Нет данных', name];
                   const num = Number(val);
-                  return [`${num.toLocaleString('ru-RU')} ₽`, name];
+                  return [`${num.toLocaleString('ru-RU')} ₸`, name];
                 }}
                 labelFormatter={(label) => `День ${label} (${monthFormattedTitle})`}
               />
@@ -1017,7 +1017,7 @@ export const BudgetTab: React.FC = () => {
                     {/* Base Plan */}
                     <td className="py-3.5 px-3 font-medium text-gray-800">
                       {item.planned > 0 ? (
-                        <span>{item.planned.toLocaleString('ru-RU')} ₽</span>
+                        <span>{item.planned.toLocaleString('ru-RU')} ₸</span>
                       ) : (
                         <span className="text-gray-300 italic">не задан</span>
                       )}
@@ -1031,7 +1031,7 @@ export const BudgetTab: React.FC = () => {
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}>
-                          {item.carriedOver > 0 ? `+${item.carriedOver.toLocaleString('ru-RU')}` : item.carriedOver.toLocaleString('ru-RU')} ₽
+                          {item.carriedOver > 0 ? `+${item.carriedOver.toLocaleString('ru-RU')}` : item.carriedOver.toLocaleString('ru-RU')} ₸
                         </span>
                       ) : (
                         <span className="text-gray-300">—</span>
@@ -1046,7 +1046,7 @@ export const BudgetTab: React.FC = () => {
                             ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                             : 'bg-amber-50 text-amber-800 border border-amber-200'
                         }`}>
-                          {item.reallocated > 0 ? `+${item.reallocated.toLocaleString('ru-RU')}` : item.reallocated.toLocaleString('ru-RU')} ₽
+                          {item.reallocated > 0 ? `+${item.reallocated.toLocaleString('ru-RU')}` : item.reallocated.toLocaleString('ru-RU')} ₸
                         </span>
                       ) : (
                         <span className="text-gray-300">—</span>
@@ -1055,14 +1055,14 @@ export const BudgetTab: React.FC = () => {
 
                     {/* Total Budget */}
                     <td className="py-3.5 px-3 font-bold text-gray-900">
-                      {item.totalBudget.toLocaleString('ru-RU')} ₽
+                      {item.totalBudget.toLocaleString('ru-RU')} ₸
                     </td>
 
                     {/* Fact */}
                     <td className={`py-3.5 px-3 font-bold ${
                       budgetType === 'expense' ? 'text-rose-600' : 'text-emerald-600'
                     }`}>
-                      {item.fact.toLocaleString('ru-RU')} ₽
+                      {item.fact.toLocaleString('ru-RU')} ₸
                     </td>
 
                     {/* Saldo */}
@@ -1072,7 +1072,7 @@ export const BudgetTab: React.FC = () => {
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
                           : 'bg-rose-50 text-rose-700 border border-rose-200/80'
                       }`}>
-                        {item.saldo > 0 ? `+${item.saldo.toLocaleString('ru-RU')}` : item.saldo.toLocaleString('ru-RU')} ₽
+                        {item.saldo > 0 ? `+${item.saldo.toLocaleString('ru-RU')}` : item.saldo.toLocaleString('ru-RU')} ₸
                       </span>
                     </td>
 
@@ -1171,7 +1171,7 @@ export const BudgetTab: React.FC = () => {
             <form onSubmit={handleSaveBudgetItem} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Базовый план на период (₽)
+                  Базовый план на период (₸)
                 </label>
                 <input
                   type="number"
@@ -1186,7 +1186,7 @@ export const BudgetTab: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Перенесенный остаток с прошлого периода (₽)
+                  Перенесенный остаток с прошлого периода (₸)
                 </label>
                 <input
                   type="number"
@@ -1258,7 +1258,7 @@ export const BudgetTab: React.FC = () => {
                   >
                     {categoryBudgetStats.map(s => (
                       <option key={s.category} value={s.category}>
-                        {s.category} (Сальдо: {s.saldo > 0 ? `+${s.saldo}` : s.saldo} ₽)
+                        {s.category} (Сальдо: {s.saldo > 0 ? `+${s.saldo}` : s.saldo} ₸)
                       </option>
                     ))}
                   </select>
@@ -1277,7 +1277,7 @@ export const BudgetTab: React.FC = () => {
                   >
                     {categoryBudgetStats.map(s => (
                       <option key={s.category} value={s.category}>
-                        {s.category} (Сальдо: {s.saldo > 0 ? `+${s.saldo}` : s.saldo} ₽)
+                        {s.category} (Сальдо: {s.saldo > 0 ? `+${s.saldo}` : s.saldo} ₸)
                       </option>
                     ))}
                   </select>
@@ -1287,7 +1287,7 @@ export const BudgetTab: React.FC = () => {
               {/* Amount */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Сумма перераспределения (₽)
+                  Сумма перераспределения (₸)
                 </label>
                 <input
                   type="number"
@@ -1394,7 +1394,7 @@ export const BudgetTab: React.FC = () => {
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-rose-100 text-rose-800'
                     }`}>
-                      {data.amount > 0 ? `+${data.amount.toLocaleString('ru-RU')}` : data.amount.toLocaleString('ru-RU')} ₽
+                      {data.amount > 0 ? `+${data.amount.toLocaleString('ru-RU')}` : data.amount.toLocaleString('ru-RU')} ₸
                     </span>
                   </label>
                 ))
@@ -1476,7 +1476,7 @@ export const BudgetTab: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-indigo-900 bg-indigo-50 px-2 py-1 rounded-md">
-                      {rec.amount.toLocaleString('ru-RU')} ₽
+                      {rec.amount.toLocaleString('ru-RU')} ₸
                     </span>
                     <button
                       onClick={() => handleDeleteReallocation(rec.id)}

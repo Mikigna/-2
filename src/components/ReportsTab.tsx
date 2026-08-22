@@ -357,7 +357,7 @@ export const ReportsTab: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase font-medium">Расходы за период</p>
-            <p className="text-xl font-bold text-rose-600 mt-1">-{totalExpense.toLocaleString('ru-RU')} ₽</p>
+            <p className="text-xl font-bold text-rose-600 mt-1">-{totalExpense.toLocaleString('ru-RU')} ₸</p>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
             <TrendingDown className="w-5 h-5" />
@@ -367,7 +367,7 @@ export const ReportsTab: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase font-medium">Доходы за период</p>
-            <p className="text-xl font-bold text-emerald-600 mt-1">+{totalIncome.toLocaleString('ru-RU')} ₽</p>
+            <p className="text-xl font-bold text-emerald-600 mt-1">+{totalIncome.toLocaleString('ru-RU')} ₸</p>
           </div>
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
             <TrendingUp className="w-5 h-5" />
@@ -441,7 +441,7 @@ export const ReportsTab: React.FC = () => {
               Всего за все месяцы
             </span>
             <p className="text-base font-bold text-gray-900 mt-0.5">
-              {categoryStats.total.toLocaleString('ru-RU')} ₽
+              {categoryStats.total.toLocaleString('ru-RU')} ₸
             </p>
           </div>
 
@@ -450,7 +450,7 @@ export const ReportsTab: React.FC = () => {
               Среднемесячный уровень
             </span>
             <p className="text-base font-bold text-blue-700 mt-0.5">
-              {categoryStats.average.toLocaleString('ru-RU')} ₽ / мес
+              {categoryStats.average.toLocaleString('ru-RU')} ₸ / мес
             </p>
           </div>
 
@@ -459,7 +459,7 @@ export const ReportsTab: React.FC = () => {
               Пиковый месяц (максимум)
             </span>
             <p className="text-base font-bold text-rose-600 mt-0.5">
-              {categoryStats.max.toLocaleString('ru-RU')} ₽
+              {categoryStats.max.toLocaleString('ru-RU')} ₸
             </p>
           </div>
 
@@ -471,12 +471,12 @@ export const ReportsTab: React.FC = () => {
               {categoryStats.changeDiff > 0 ? (
                 <span className="text-xs font-bold text-rose-600 flex items-center">
                   <ArrowUpRight className="w-3.5 h-3.5" />
-                  +{categoryStats.changePercent}% (+{categoryStats.changeDiff.toLocaleString('ru-RU')} ₽)
+                  +{categoryStats.changePercent}% (+{categoryStats.changeDiff.toLocaleString('ru-RU')} ₸)
                 </span>
               ) : categoryStats.changeDiff < 0 ? (
                 <span className="text-xs font-bold text-emerald-600 flex items-center">
                   <ArrowDownRight className="w-3.5 h-3.5" />
-                  {categoryStats.changePercent}% ({categoryStats.changeDiff.toLocaleString('ru-RU')} ₽)
+                  {categoryStats.changePercent}% ({categoryStats.changeDiff.toLocaleString('ru-RU')} ₸)
                 </span>
               ) : (
                 <span className="text-xs font-bold text-gray-500">Без изменений</span>
@@ -493,7 +493,7 @@ export const ReportsTab: React.FC = () => {
               <XAxis dataKey="monthLabel" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} />
               <Tooltip
-                formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₽`, 'Сумма']}
+                formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₸`, 'Сумма']}
                 labelFormatter={(label) => `Период: ${label}`}
               />
               <Legend verticalAlign="top" height={32} wrapperStyle={{ fontSize: '12px' }} />
@@ -536,12 +536,12 @@ export const ReportsTab: React.FC = () => {
                   return (
                     <tr key={row.monthKey} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-2.5 px-3 font-semibold text-gray-900">{row.monthLabel}</td>
-                      <td className="py-2.5 px-3 font-bold text-gray-800">{row.amount.toLocaleString('ru-RU')} ₽</td>
+                      <td className="py-2.5 px-3 font-bold text-gray-800">{row.amount.toLocaleString('ru-RU')} ₸</td>
                       <td className="py-2.5 px-3 font-medium text-gray-600">{row.sharePercent}%</td>
                       <td className="py-2.5 px-3 text-right">
                         {row.amount > 0 ? (
                           <span className={`font-semibold ${diffFromAvg > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                            {diffFromAvg > 0 ? `+${diffFromAvg.toLocaleString('ru-RU')}` : diffFromAvg.toLocaleString('ru-RU')} ₽
+                            {diffFromAvg > 0 ? `+${diffFromAvg.toLocaleString('ru-RU')}` : diffFromAvg.toLocaleString('ru-RU')} ₸
                           </span>
                         ) : (
                           <span className="text-gray-300">—</span>
@@ -594,12 +594,12 @@ export const ReportsTab: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
               <div className="bg-white p-2.5 rounded-lg border border-blue-100">
                 <p className="text-gray-500 text-[11px]">Обязательные</p>
-                <p className="font-bold text-blue-900 mt-0.5">{mandatoryExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-blue-900 mt-0.5">{mandatoryExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-blue-600 mt-0.5">{mandatoryPercent}% от расходов</p>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-blue-100">
                 <p className="text-gray-500 text-[11px]">Необязательные</p>
-                <p className="font-bold text-indigo-900 mt-0.5">{optionalExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-indigo-900 mt-0.5">{optionalExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-indigo-600 mt-0.5">{optionalPercent}% от расходов</p>
               </div>
             </div>
@@ -630,12 +630,12 @@ export const ReportsTab: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
               <div className="bg-white p-2.5 rounded-lg border border-emerald-100">
                 <p className="text-gray-500 text-[11px]">Плановые</p>
-                <p className="font-bold text-emerald-900 mt-0.5">{plannedExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-emerald-900 mt-0.5">{plannedExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-emerald-600 mt-0.5">{plannedPercent}%</p>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-amber-200">
                 <p className="text-gray-500 text-[11px]">Неплановые (спонтанные)</p>
-                <p className="font-bold text-amber-900 mt-0.5">{unplannedExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-amber-900 mt-0.5">{unplannedExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-amber-600 mt-0.5">{unplannedPercent}%</p>
               </div>
             </div>
@@ -665,12 +665,12 @@ export const ReportsTab: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <p className="text-gray-500 text-[11px]">Регулярные</p>
-                <p className="font-bold text-slate-900 mt-0.5">{regularExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-slate-900 mt-0.5">{regularExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-blue-600 mt-0.5">{regularExpensePercent}%</p>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <p className="text-gray-500 text-[11px]">Разовые</p>
-                <p className="font-bold text-slate-900 mt-0.5">{oneOffExpense.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-slate-900 mt-0.5">{oneOffExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-slate-500 mt-0.5">{oneOffExpensePercent}%</p>
               </div>
             </div>
@@ -700,12 +700,12 @@ export const ReportsTab: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
               <div className="bg-white p-2.5 rounded-lg border border-emerald-100">
                 <p className="text-gray-500 text-[11px]">Регулярный доход</p>
-                <p className="font-bold text-emerald-900 mt-0.5">{regularIncome.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-emerald-900 mt-0.5">{regularIncome.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-emerald-600 mt-0.5">{regularIncomePercent}%</p>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-purple-100">
                 <p className="text-gray-500 text-[11px]">Нерегулярный доход</p>
-                <p className="font-bold text-purple-900 mt-0.5">{irregularIncome.toLocaleString('ru-RU')} ₽</p>
+                <p className="font-bold text-purple-900 mt-0.5">{irregularIncome.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-purple-600 mt-0.5">{irregularIncomePercent}%</p>
               </div>
             </div>
@@ -745,7 +745,7 @@ export const ReportsTab: React.FC = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₽`, 'Сумма']}
+                      formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₸`, 'Сумма']}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -766,7 +766,7 @@ export const ReportsTab: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-gray-400 font-mono">{percentage}%</span>
-                        <span className="font-bold text-gray-900">{item.value.toLocaleString('ru-RU')} ₽</span>
+                        <span className="font-bold text-gray-900">{item.value.toLocaleString('ru-RU')} ₸</span>
                       </div>
                     </div>
                   );
@@ -794,7 +794,7 @@ export const ReportsTab: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₽`]} />
+                  <Tooltip formatter={(val: number) => [`${val.toLocaleString('ru-RU')} ₸`]} />
                   <Legend />
                   <Bar dataKey="income" name="Доходы" fill="#10b981" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expense" name="Расходы" fill="#ef4444" radius={[4, 4, 0, 0]} />
