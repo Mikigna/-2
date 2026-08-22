@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../db/database';
-import type { Category, PaymentMethod, Transaction } from '../types';
+import { 
+  db, 
+  downloadBackupFile, 
+  importDataFromJSON, 
+  resetDatabaseToDefault 
+} from '../db/database';
+import type { Category, PaymentMethod } from '../types';
 import { 
   FolderPlus, 
   Trash2, 
   CreditCard, 
   Download, 
   Upload, 
-  RotateCcw, 
   Tag, 
   CheckCircle2,
-  AlertTriangle 
+  AlertTriangle,
+  ShieldCheck,
+  HardDrive,
+  RefreshCw,
+  FileJson
 } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
@@ -24,8 +32,9 @@ export const SettingsTab: React.FC = () => {
   // Method Input
   const [newMethodName, setNewMethodName] = useState('');
 
-  // Status message
-  const [message, setMessage] = useState<string | null>(null);
+  // Status message / toast
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const loadData = async () => {
     const cats = await db.categories.toArray();
@@ -38,9 +47,9 @@ export const SettingsTab: React.FC = () => {
     loadData();
   }, []);
 
-  const showToast = (msg: string) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(null), 3000);
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 4000);
   };
 
   // Add Category
@@ -55,14 +64,14 @@ export const SettingsTab: React.FC = () => {
     });
 
     setNewCatName('');
-    showToast(`Категория "${trimmed}" добавлена`);
+    showToast(`Категория "${trimmed}" успешно добавлена`);
     loadData();
   };
 
   // Delete Category
   const handleDeleteCategory = async (id?: number, name?: string) => {
     if (!id) return;
-    if (confirm(`Удалить категорию "${name}"?`)) {
+    if (window.confirm(`Удалить категорию "${name}"?`)) {
       await db.categories.delete(id);
       showToast(`Категория "${name}" удалена`);
       loadData();
@@ -84,104 +93,195 @@ export const SettingsTab: React.FC = () => {
   // Delete Method
   const handleDeleteMethod = async (id?: number, name?: string) => {
     if (!id) return;
-    if (confirm(`Удалить способ оплаты "${name}"?`)) {
+    if (window.confirm(`Удалить способ оплаты "${name}"?`)) {
       await db.methods.delete(id);
       showToast(`Способ оплаты "${name}" удален`);
       loadData();
     }
   };
 
-  // Backup JSON Export
-  const handleExportBackup = async () => {
-    const expensesArr = await db.expenses.toArray();
-    const categoriesArr = await db.categories.toArray();
-    const methodsArr = await db.methods.toArray();
-
-    const backupData = {
-      version: 1,
-      exportDate: new Date().toISOString(),
-      expenses: expensesArr,
-      categories: categoriesArr,
-      methods: methodsArr
-    };
-
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Finance_Backup_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    showToast('Резервная копия скачана!');
+  // Резервная копия: Экспорт в JSON
+  const handleExport = async () => {
+    try {
+      setIsProcessing(true);
+      await downloadBackupFile();
+      showToast('Резервная копия (.json) успешно сохранена на ваше устройство!');
+    } catch (err: any) {
+      showToast(err?.message || 'Ошибка при экспорте данных', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Backup JSON Import
-  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Восстановление из JSON
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const confirmed = window.confirm(
+      'Внимание! Импорт из файла перезапишет текущие данные в IndexedDB на вашем устройстве.\n\nПродолжить восстановление?'
+    );
+
+    if (!confirmed) {
+      e.target.value = '';
+      return;
+    }
+
+    setIsProcessing(true);
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       try {
-        const json = JSON.parse(event.target?.result as string);
-        if (json.expenses && Array.isArray(json.expenses)) {
-          if (confirm('Импорт заменит или добавит данные. Продолжить?')) {
-            await db.expenses.clear();
-            await db.categories.clear();
-            await db.methods.clear();
+        const content = event.target?.result as string;
+        const stats = await importDataFromJSON(content);
 
-            await db.expenses.bulkAdd(json.expenses);
-            if (json.categories) await db.categories.bulkAdd(json.categories);
-            if (json.methods) await db.methods.bulkAdd(json.methods);
-
-            showToast('Данные успешно импортированы!');
-            loadData();
-          }
-        } else {
-          alert('Неверный формат файла резервной копии');
-        }
-      } catch (err) {
-        alert('Ошибка при чтении файла');
+        showToast(
+          `Данные успешно восстановлены! Загружено: ${stats.expensesCount} операций, ${stats.categoriesCount} категорий, ${stats.budgetsCount} бюджетов.`
+        );
+        loadData();
+      } catch (err: any) {
+        showToast(err?.message || 'Ошибка при восстановлении файла', 'error');
+      } finally {
+        setIsProcessing(false);
+        e.target.value = '';
       }
     };
+
+    reader.onerror = () => {
+      showToast('Не удалось прочитать выбранный файл', 'error');
+      setIsProcessing(false);
+      e.target.value = '';
+    };
+
     reader.readAsText(file);
   };
 
-  // Reset database
-  const handleResetData = async () => {
-    if (confirm('Внимание! Все транзакции, категории и способы оплаты будут сброшены. Вы уверены?')) {
-      await db.expenses.clear();
-      await db.categories.clear();
-      await db.methods.clear();
+  // Сброс базы данных
+  const handleReset = async () => {
+    const confirmed = window.confirm(
+      'Внимание! Все операции, планы бюджета и категории будут сброшены до начальных настроек.\n\nПеред сбросом рекомендуется скачать резервную копию JSON.\n\nВы уверены?'
+    );
 
-      // Seed default
-      await db.categories.bulkAdd([
-        { name: 'Продукты', type: 'expense' },
-        { name: 'Транспорт', type: 'expense' },
-        { name: 'Жилье и КУ', type: 'expense' },
-        { name: 'Зарплата', type: 'income' }
-      ]);
-      await db.methods.bulkAdd([
-        { name: 'Карта' },
-        { name: 'Наличные' }
-      ]);
-
-      showToast('База данных сброшена до начальных настроек');
-      loadData();
+    if (confirmed) {
+      setIsProcessing(true);
+      try {
+        await resetDatabaseToDefault();
+        showToast('База данных успешно сброшена до стандартных значений');
+        loadData();
+      } catch (err: any) {
+        showToast('Ошибка при сбросе данных', 'error');
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Toast Alert */}
       {message && (
-        <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-sm font-medium flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          {message}
+        <div 
+          className={`p-3.5 rounded-xl text-sm font-medium flex items-center gap-2.5 transition-all shadow-sm ${
+            message.type === 'success' 
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+              : 'bg-rose-50 text-rose-800 border border-rose-200'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+          )}
+          <span>{message.text}</span>
         </div>
       )}
 
+      {/* Local-First Architecture Badge */}
+      <div className="bg-gradient-to-br from-slate-900 to-blue-950 text-white p-5 rounded-2xl shadow-sm border border-slate-800 space-y-2">
+        <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+          <ShieldCheck className="w-4 h-4" />
+          100% Local-First Архитектура
+        </div>
+        <h3 className="text-base font-bold text-white">Ваши данные хранятся только на вашем устройстве</h3>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          Все операции, бюджеты и категории сохраняются в изолированной локальной базе данных браузера (IndexedDB).
+          При развертывании новых версий интерфейса на Vercel ваши данные не удаляются и остаются в сохранности.
+        </p>
+      </div>
+
+      {/* Backup & Data Management */}
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <HardDrive className="w-5 h-5 text-blue-600" />
+            Резервное копирование и перенос данных
+          </h2>
+          <span className="text-xs text-gray-400 font-medium hidden sm:inline">JSON Резервная копия</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Export Box */}
+          <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <FileJson className="w-4 h-4 text-blue-600" />
+                <p className="font-bold text-gray-900 text-sm">Скачать резервную копию</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Выгружает все транзакции, статьи бюджета, историю перераспределений и справочники в единый .json файл.
+              </p>
+            </div>
+            <button
+              onClick={handleExport}
+              disabled={isProcessing}
+              className="py-2.5 px-4 bg-gray-900 hover:bg-gray-800 active:scale-[0.98] text-white font-medium rounded-xl text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Download className="w-4 h-4 text-blue-400" />
+              Скачать резервную копию (.json)
+            </button>
+          </div>
+
+          {/* Import Box */}
+          <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-emerald-600" />
+                <p className="font-bold text-gray-900 text-sm">Восстановить из файла</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Загрузите ранее экспортированный файл .json для переноса на новый телефон, планшет или другой браузер.
+              </p>
+            </div>
+            <label className="py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-100 active:scale-[0.98] text-gray-800 font-semibold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-2">
+              <Upload className="w-4 h-4 text-emerald-600" />
+              Восстановить из файла (.json)
+              <input 
+                type="file" 
+                accept=".json,application/json" 
+                onChange={handleImport} 
+                className="hidden" 
+                disabled={isProcessing}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
+          <button
+            onClick={handleReset}
+            disabled={isProcessing}
+            className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 py-1 disabled:opacity-50"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Сбросить локальную базу данных
+          </button>
+          <span className="text-[11px] text-gray-400">IndexedDB: FinanceDB (v4)</span>
+        </div>
+      </div>
+
       {/* Categories Section */}
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
           <Tag className="w-5 h-5 text-blue-600" />
           Управление Категориями
         </h2>
@@ -198,7 +298,7 @@ export const SettingsTab: React.FC = () => {
           </select>
           <input
             type="text"
-            placeholder="Название категории..."
+            placeholder="Название новой категории..."
             value={newCatName}
             onChange={e => setNewCatName(e.target.value)}
             className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
@@ -216,7 +316,7 @@ export const SettingsTab: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
           <div>
             <p className="text-xs font-bold text-rose-600 uppercase mb-2">Категории расходов</p>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
               {categories
                 .filter(c => c.type === 'expense' || !c.type)
                 .map(c => (
@@ -228,6 +328,7 @@ export const SettingsTab: React.FC = () => {
                     <button
                       onClick={() => handleDeleteCategory(c.id, c.name)}
                       className="p-1 text-gray-400 hover:text-rose-600 transition-colors"
+                      title="Удалить категорию"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -238,7 +339,7 @@ export const SettingsTab: React.FC = () => {
 
           <div>
             <p className="text-xs font-bold text-emerald-600 uppercase mb-2">Категории доходов</p>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
               {categories
                 .filter(c => c.type === 'income')
                 .map(c => (
@@ -250,6 +351,7 @@ export const SettingsTab: React.FC = () => {
                     <button
                       onClick={() => handleDeleteCategory(c.id, c.name)}
                       className="p-1 text-gray-400 hover:text-rose-600 transition-colors"
+                      title="Удалить категорию"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -262,7 +364,7 @@ export const SettingsTab: React.FC = () => {
 
       {/* Payment Methods Section */}
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-blue-600" />
           Виды платежей
         </h2>
@@ -270,7 +372,7 @@ export const SettingsTab: React.FC = () => {
         <form onSubmit={handleAddMethod} className="flex gap-2">
           <input
             type="text"
-            placeholder="Новый способ оплаты (напр., Карта МИР)..."
+            placeholder="Новый способ оплаты (напр., Карта Kaspi Gold)..."
             value={newMethodName}
             onChange={e => setNewMethodName(e.target.value)}
             className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
@@ -294,54 +396,12 @@ export const SettingsTab: React.FC = () => {
               <button
                 onClick={() => handleDeleteMethod(m.id, m.name)}
                 className="p-1 text-gray-400 hover:text-rose-600 transition-colors"
+                title="Удалить способ оплаты"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Backup & Data Management */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-        <h2 className="text-lg font-bold text-gray-900">Резервное копирование и управление данными</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col justify-between gap-3">
-            <div>
-              <p className="font-semibold text-gray-900 text-sm">Скачать копию (JSON)</p>
-              <p className="text-xs text-gray-500 mt-1">Сохраните файл со всеми транзакциями и настройками на компьютер.</p>
-            </div>
-            <button
-              onClick={handleExportBackup}
-              className="py-2.5 px-4 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Экспорт JSON
-            </button>
-          </div>
-
-          <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col justify-between gap-3">
-            <div>
-              <p className="font-semibold text-gray-900 text-sm">Восстановить из файла</p>
-              <p className="text-xs text-gray-500 mt-1">Загрузите ранее сохраненный файл резервной копии .json</p>
-            </div>
-            <label className="py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-medium rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-2">
-              <Upload className="w-4 h-4" />
-              Загрузить JSON
-              <input type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
-            </label>
-          </div>
-        </div>
-
-        <div className="pt-2 border-t border-gray-100">
-          <button
-            onClick={handleResetData}
-            className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 py-1"
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Сбросить базу данных до стандартных значений
-          </button>
         </div>
       </div>
     </div>
