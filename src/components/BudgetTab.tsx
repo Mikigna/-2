@@ -172,9 +172,17 @@ export const BudgetTab: React.FC = () => {
     return transactions.filter(t => t.date >= periodStartDate && t.date <= periodEndDate);
   }, [transactions, periodStartDate, periodEndDate]);
 
-  // Filter categories by active budget type (expense/income)
+  // Filter categories by active budget type (expense/income) and deduplicate by name
   const currentCategories = useMemo(() => {
-    return categories.filter(c => c.type === budgetType);
+    const seen = new Set<string>();
+    return categories
+      .filter(c => c.type === budgetType)
+      .filter(c => {
+        const name = (c.name || '').trim();
+        if (!name || seen.has(name)) return false;
+        seen.add(name);
+        return true;
+      });
   }, [categories, budgetType]);
 
   // Calculate Plan, Fact, Rollover, Reallocation, Saldo & % per Category
@@ -881,8 +889,8 @@ export const BudgetTab: React.FC = () => {
               className="px-3 py-1.5 border border-gray-200 rounded-xl bg-white text-gray-800 font-semibold focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Все категории суммарно</option>
-              {currentCategories.map(c => (
-                <option key={c.id} value={c.name}>
+              {currentCategories.map((c, idx) => (
+                <option key={c.id || `budget-chart-cat-${c.name}-${idx}`} value={c.name}>
                   {c.name}
                 </option>
               ))}

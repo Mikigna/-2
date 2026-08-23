@@ -58,6 +58,14 @@ export const SettingsTab: React.FC = () => {
     const trimmed = newCatName.trim();
     if (!trimmed) return;
 
+    const exists = categories.some(
+      c => c.name.trim().toLowerCase() === trimmed.toLowerCase() && c.type === newCatType
+    );
+    if (exists) {
+      showToast(`Категория "${trimmed}" уже существует`, 'error');
+      return;
+    }
+
     await db.categories.add({
       name: trimmed,
       type: newCatType
@@ -83,6 +91,14 @@ export const SettingsTab: React.FC = () => {
     e.preventDefault();
     const trimmed = newMethodName.trim();
     if (!trimmed) return;
+
+    const exists = methods.some(
+      m => m.name.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      showToast(`Способ оплаты "${trimmed}" уже существует`, 'error');
+      return;
+    }
 
     await db.methods.add({ name: trimmed });
     setNewMethodName('');

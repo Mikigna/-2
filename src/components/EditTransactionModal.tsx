@@ -148,7 +148,17 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     }
   };
 
-  const availableCategories = categories.filter(c => c.type === type);
+  const availableCategories = React.useMemo(() => {
+    const seen = new Set<string>();
+    return categories
+      .filter(c => c.type === type)
+      .filter(c => {
+        const name = (c.name || '').trim();
+        if (!name || seen.has(name)) return false;
+        seen.add(name);
+        return true;
+      });
+  }, [categories, type]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -257,8 +267,8 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
                 required
               >
-                {availableCategories.map(c => (
-                  <option key={c.id || c.name} value={c.name}>
+                {availableCategories.map((c, idx) => (
+                  <option key={c.id || `edit-cat-${c.name}-${idx}`} value={c.name}>
                     {c.name}
                   </option>
                 ))}
@@ -277,8 +287,8 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
                 required
               >
-                {methods.map(m => (
-                  <option key={m.id || m.name} value={m.name}>
+                {methods.map((m, idx) => (
+                  <option key={m.id || `edit-meth-${m.name}-${idx}`} value={m.name}>
                     {m.name}
                   </option>
                 ))}

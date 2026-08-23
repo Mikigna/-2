@@ -425,8 +425,8 @@ export const ReportsTab: React.FC = () => {
               <option value="all">Все категории суммарно</option>
               {categories
                 .filter(c => c.type === dynamicsType)
-                .map(c => (
-                  <option key={c.id} value={c.name}>
+                .map((c, idx) => (
+                  <option key={c.id || `${c.name}-${idx}`} value={c.name}>
                     {c.name}
                   </option>
                 ))}
@@ -756,7 +756,7 @@ export const ReportsTab: React.FC = () => {
                 {categoryChartData.map((item, idx) => {
                   const percentage = totalExpense > 0 ? ((item.value / totalExpense) * 100).toFixed(1) : 0;
                   return (
-                    <div key={item.name} className="flex items-center justify-between text-xs py-1 border-b border-gray-50">
+                    <div key={`legend-${item.name}-${idx}`} className="flex items-center justify-between text-xs py-1 border-b border-gray-50">
                       <div className="flex items-center gap-2">
                         <span
                           className="w-3 h-3 rounded-full"

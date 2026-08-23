@@ -85,35 +85,80 @@ export class FinanceDatabase extends Dexie {
 // Экземпляр синглтона базы данных
 export const db = new FinanceDatabase();
 
+let seedPromise: Promise<void> | null = null;
+
 /**
- * Первоначальное заполнение базовыми категориями (только если база пуста)
+ * Первоначальное заполнение базовыми категориями с защитой от гонки потоков
+ * и автоматической очисткой возможных дубликатов в существующих базах.
  */
 export async function seedInitialData(): Promise<void> {
-  const catCount = await db.categories.count();
-  if (catCount === 0) {
-    await db.categories.bulkAdd([
-      { name: 'Продукты', type: 'expense', color: '#ef4444', icon: 'ShoppingCart' },
-      { name: 'Транспорт', type: 'expense', color: '#3b82f6', icon: 'Car' },
-      { name: 'Жилье и КУ', type: 'expense', color: '#10b981', icon: 'Home' },
-      { name: 'Развлечения', type: 'expense', color: '#8b5cf6', icon: 'Film' },
-      { name: 'Здоровье', type: 'expense', color: '#ec4899', icon: 'HeartPulse' },
-      { name: 'Кафе и Рестораны', type: 'expense', color: '#f59e0b', icon: 'Utensils' },
-      { name: 'Одежда', type: 'expense', color: '#06b6d4', icon: 'ShoppingBag' },
-      { name: 'Зарплата', type: 'income', color: '#10b981', icon: 'Wallet' },
-      { name: 'Фриланс', type: 'income', color: '#6366f1', icon: 'Laptop' },
-      { name: 'Инвестиции', type: 'income', color: '#84cc16', icon: 'TrendingUp' },
-    ]);
-  }
+  if (seedPromise) return seedPromise;
 
-  const methodCount = await db.methods.count();
-  if (methodCount === 0) {
-    await db.methods.bulkAdd([
-      { name: 'Карта' },
-      { name: 'Наличные' },
-      { name: 'СБП / Перевод' },
-      { name: 'Сберегательный счет' }
-    ]);
-  }
+  seedPromise = (async () => {
+    try {
+      const catCount = await db.categories.count();
+      if (catCount === 0) {
+        await db.categories.bulkAdd([
+          { name: 'Продукты', type: 'expense', color: '#ef4444', icon: 'ShoppingCart' },
+          { name: 'Транспорт', type: 'expense', color: '#3b82f6', icon: 'Car' },
+          { name: 'Жилье и КУ', type: 'expense', color: '#10b981', icon: 'Home' },
+          { name: 'Развлечения', type: 'expense', color: '#8b5cf6', icon: 'Film' },
+          { name: 'Здоровье', type: 'expense', color: '#ec4899', icon: 'HeartPulse' },
+          { name: 'Кафе и Рестораны', type: 'expense', color: '#f59e0b', icon: 'Utensils' },
+          { name: 'Одежда', type: 'expense', color: '#06b6d4', icon: 'ShoppingBag' },
+          { name: 'Зарплата', type: 'income', color: '#10b981', icon: 'Wallet' },
+          { name: 'Фриланс', type: 'income', color: '#6366f1', icon: 'Laptop' },
+          { name: 'Инвестиции', type: 'income', color: '#84cc16', icon: 'TrendingUp' },
+        ]);
+      } else {
+        // Автоматическая очистка дубликатов категорий по названию и типу
+        const allCats = await db.categories.toArray();
+        const seenCatKeys = new Set<string>();
+        const dupCatIds: number[] = [];
+        for (const cat of allCats) {
+          const key = `${cat.type || 'expense'}-${(cat.name || '').trim().toLowerCase()}`;
+          if (seenCatKeys.has(key)) {
+            if (cat.id) dupCatIds.push(cat.id);
+          } else {
+            seenCatKeys.add(key);
+          }
+        }
+        if (dupCatIds.length > 0) {
+          await db.categories.bulkDelete(dupCatIds);
+        }
+      }
+
+      const methodCount = await db.methods.count();
+      if (methodCount === 0) {
+        await db.methods.bulkAdd([
+          { name: 'Карта' },
+          { name: 'Наличные' },
+          { name: 'СБП / Перевод' },
+          { name: 'Сберегательный счет' }
+        ]);
+      } else {
+        // Автоматическая очистка дубликатов способов оплаты
+        const allMethods = await db.methods.toArray();
+        const seenMethodNames = new Set<string>();
+        const dupMethodIds: number[] = [];
+        for (const m of allMethods) {
+          const key = (m.name || '').trim().toLowerCase();
+          if (seenMethodNames.has(key)) {
+            if (m.id) dupMethodIds.push(m.id);
+          } else {
+            seenMethodNames.add(key);
+          }
+        }
+        if (dupMethodIds.length > 0) {
+          await db.methods.bulkDelete(dupMethodIds);
+        }
+      }
+    } finally {
+      seedPromise = null;
+    }
+  })();
+
+  return seedPromise;
 }
 
 /**
@@ -209,20 +254,39 @@ export async function importDataFromJSON(jsonString: string): Promise<{
     incomeFrequency: item.incomeFrequency === 'irregular' ? 'irregular' : 'regular'
   }));
 
-  // Нормализация категорий
-  const cleanCategories: Category[] = rawCategories.map(item => ({
-    id: typeof item.id === 'number' ? item.id : undefined,
-    name: String(item.name || 'Категория'),
-    type: item.type === 'income' ? 'income' : 'expense',
-    color: item.color ? String(item.color) : undefined,
-    icon: item.icon ? String(item.icon) : undefined
-  }));
+  // Нормализация категорий с дедупликацией
+  const seenCategoryKeys = new Set<string>();
+  const cleanCategories: Category[] = [];
+  for (const item of rawCategories) {
+    const name = String(item.name || 'Категория').trim();
+    const type = item.type === 'income' ? 'income' : 'expense';
+    const key = `${type}-${name.toLowerCase()}`;
+    if (!seenCategoryKeys.has(key)) {
+      seenCategoryKeys.add(key);
+      cleanCategories.push({
+        id: typeof item.id === 'number' ? item.id : undefined,
+        name,
+        type,
+        color: item.color ? String(item.color) : undefined,
+        icon: item.icon ? String(item.icon) : undefined
+      });
+    }
+  }
 
-  // Нормализация способов оплаты
-  const cleanMethods: PaymentMethod[] = rawMethods.map(item => ({
-    id: typeof item.id === 'number' ? item.id : undefined,
-    name: String(item.name || 'Оплата')
-  }));
+  // Нормализация способов оплаты с дедупликацией
+  const seenMethodNames = new Set<string>();
+  const cleanMethods: PaymentMethod[] = [];
+  for (const item of rawMethods) {
+    const name = String(item.name || 'Оплата').trim();
+    const key = name.toLowerCase();
+    if (!seenMethodNames.has(key)) {
+      seenMethodNames.add(key);
+      cleanMethods.push({
+        id: typeof item.id === 'number' ? item.id : undefined,
+        name
+      });
+    }
+  }
 
   // Нормализация бюджетов
   const cleanBudgets: BudgetItem[] = rawBudgets.map(item => ({

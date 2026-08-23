@@ -315,8 +315,8 @@ export const ExpensesTab: React.FC = () => {
               >
                 {categories
                   .filter(c => c.type === type)
-                  .map(c => (
-                    <option key={c.id} value={c.name}>
+                  .map((c, idx) => (
+                    <option key={c.id || `cat-${c.name}-${idx}`} value={c.name}>
                       {c.name}
                     </option>
                   ))}
@@ -335,8 +335,8 @@ export const ExpensesTab: React.FC = () => {
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                 required
               >
-                {methods.map(m => (
-                  <option key={m.id} value={m.name}>
+                {methods.map((m, idx) => (
+                  <option key={m.id || `meth-${m.name}-${idx}`} value={m.name}>
                     {m.name}
                   </option>
                 ))}
@@ -551,8 +551,8 @@ export const ExpensesTab: React.FC = () => {
               className="px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700"
             >
               <option value="all">Все категории</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.name}>
+              {categories.map((c, idx) => (
+                <option key={c.id || `filter-cat-${c.name}-${idx}`} value={c.name}>
                   {c.name}
                 </option>
               ))}
