@@ -9,6 +9,7 @@ import type {
   ExpensePlanning, 
   IncomeFrequency 
 } from '../types';
+import { EditTransactionModal } from './EditTransactionModal';
 import { 
   PlusCircle, 
   Trash2, 
@@ -26,13 +27,17 @@ import {
   Repeat,
   Zap,
   Target,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from 'lucide-react';
 
 export const ExpensesTab: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
+
+  // Editing Modal State
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   // Form State
   const [type, setType] = useState<'expense' | 'income'>('expense');
@@ -715,13 +720,22 @@ export const ExpensesTab: React.FC = () => {
                     >
                       {isIncome ? '+' : '-'}{item.amount.toLocaleString('ru-RU')} ₸
                     </span>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-1.5 text-gray-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                      title="Удалить"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditingTransaction(item)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Редактировать операцию"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Удалить"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -729,6 +743,16 @@ export const ExpensesTab: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionModal
+        transaction={editingTransaction}
+        categories={categories}
+        methods={methods}
+        isOpen={!!editingTransaction}
+        onClose={() => setEditingTransaction(null)}
+        onSaved={loadData}
+      />
     </div>
   );
 };
