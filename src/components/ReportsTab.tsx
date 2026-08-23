@@ -281,7 +281,7 @@ export const ReportsTab: React.FC = () => {
       if (!isInc) {
         necessityLabel = (e.necessity || 'mandatory') === 'mandatory' ? 'Обязательное' : 'Необязательное';
         frequencyLabel = (e.frequency || 'one_off') === 'regular' ? 'Регулярное' : 'Разовое';
-        planningLabel = (e.planning || 'planned') === 'planned' ? 'Плановое' : 'Неплановое';
+        planningLabel = (e.planning || 'planned') === 'planned' ? 'Плановое' : 'Внеплановое';
       } else {
         frequencyLabel = (e.incomeFrequency || 'regular') === 'regular' ? 'Регулярный' : 'Нерегулярный';
       }
@@ -605,7 +605,7 @@ export const ReportsTab: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Плановые vs Неплановые */}
+          {/* 2. Плановые vs Внеплановые */}
           <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
@@ -634,7 +634,7 @@ export const ReportsTab: React.FC = () => {
                 <p className="text-[10px] text-emerald-600 mt-0.5">{plannedPercent}%</p>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-amber-200">
-                <p className="text-gray-500 text-[11px]">Неплановые (спонтанные)</p>
+                <p className="text-gray-500 text-[11px]">Внеплановые (спонтанные)</p>
                 <p className="font-bold text-amber-900 mt-0.5">{unplannedExpense.toLocaleString('ru-RU')} ₸</p>
                 <p className="text-[10px] text-amber-600 mt-0.5">{unplannedPercent}%</p>
               </div>

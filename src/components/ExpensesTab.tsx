@@ -410,7 +410,7 @@ export const ExpensesTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 3. Плановое / Неплановое */}
+                {/* 3. Плановое / Внеплановое */}
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-1.5">
                     Плановость
@@ -436,7 +436,7 @@ export const ExpensesTab: React.FC = () => {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <AlertCircle className="w-3 h-3" /> Неплановое
+                      <AlertCircle className="w-3 h-3" /> Внеплановое
                     </button>
                   </div>
                 </div>
@@ -605,9 +605,9 @@ export const ExpensesTab: React.FC = () => {
                 onChange={e => setSelectedPlanningFilter(e.target.value)}
                 className="w-full p-1.5 border border-slate-200 rounded-lg bg-white text-slate-800"
               >
-                <option value="all">Все (Плановые + Неплановые)</option>
+                <option value="all">Все (Плановые + Внеплановые)</option>
                 <option value="planned">Только плановые</option>
-                <option value="unplanned">Только неплановые</option>
+                <option value="unplanned">Только внеплановые</option>
               </select>
             </div>
           </div>
@@ -679,7 +679,7 @@ export const ExpensesTab: React.FC = () => {
                                   : 'bg-amber-50 text-amber-800 border-amber-200'
                               }`}
                             >
-                              {isPlanned ? 'Плановое' : 'Неплановое'}
+                              {isPlanned ? 'Плановое' : 'Внеплановое'}
                             </span>
                           </>
                         ) : (

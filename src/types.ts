@@ -2,7 +2,7 @@ export type TransactionType = 'expense' | 'income';
 
 export type ExpenseNecessity = 'mandatory' | 'optional'; // Обязательное / Необязательное
 export type ExpenseFrequency = 'regular' | 'one_off'; // Регулярное / Разовое
-export type ExpensePlanning = 'planned' | 'unplanned'; // Плановое / Неплановое
+export type ExpensePlanning = 'planned' | 'unplanned'; // Плановое / Внеплановое
 
 export type IncomeFrequency = 'regular' | 'irregular'; // Регулярный / Нерегулярный
 
